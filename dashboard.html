@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="dashboard.css">
+    <script>
+        // Check if user is logged in
+        function checkAuth() {
+            const isLoggedIn = sessionStorage.getItem('isLoggedIn');
+            if (!isLoggedIn) {
+                // Redirect to login page if not logged in
+                window.location.href = 'index.html';
+            }
+        }
+        
+        // Run auth check when page loads
+        document.addEventListener('DOMContentLoaded', checkAuth);
+        </script>
+</head>
+<body>
+    <div id="logo-icons">
+        <img src="logo (1).png" alt="SBI Logo">
+     </div>   
+    
+    <header>
+        <nav>
+            <a href="#services">Services</a>
+            <a href="#faq">FAQ</a>         
+            <a href="#corporate">Corporate Website</a>
+            <a href="#lite">SBIePay Lite</a>
+            <a href="#donations">Donations</a>
+            <a href="#collect">SB Collect</a>
+            <a href="#videos">Videos</a>
+            <a href="#mCash">mCash</a>
+            <a href="#apply">Apply for SB/ Current Account</a>
+            <a href="#unipay">SBI Unipay</a>
+            <a href="#loans">SBI Loans</a>
+        </nav>
+
+    </header>
+
+    <center><img src="personal_banner.jpg" alt=""></center>
+    
+
+    <div class="dashboard-container">
+            <div class="header">
+                <div>
+                    <h1>Welcome back, <span id="accountName">Meghana K S</span></h1>
+                    <div class="account-info">
+                        <div class="info-card">
+                            <h3>Account Number</h3>
+                            <p id="accountNumber">1234567890</p>
+                        </div>
+                        <div class="info-card">
+                            <h3>Branch Name</h3>
+                            <p id="branchName">Main Branch</p>
+                        </div>
+                        <div class="info-card">
+                            <h3>Current Balance</h3>
+                            <p id="currentBalance">10,000.00/-</p>
+                        </div>
+                    </div>
+                </div>
+                <button class="logout-btn" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </button>
+            </div>
+
+            
+        </div>
+
+        <div class="actions-grid">
+            <div class="action-card" onclick="openModal('deposit')">
+                <i class="fas fa-money-bill-wave"></i>
+                <h2>Deposit</h2>
+                <p>Add funds to your account</p>
+            </div>
+            <div class="action-card" onclick="openModal('withdraw')">
+                <i class="fas fa-money-bill-transfer"></i>
+                <h2>Withdraw</h2>
+                <p>Withdraw funds from your account</p>
+            </div>
+            <div class="action-card" onclick="checkBalance()">
+                <i class="fas fa-wallet"></i>
+                <h2>Check Balance</h2>
+                <p>View your current balance</p>
+            </div>
+            <div class="action-card" onclick="viewTransactionHistory()">
+                <i class="fas fa-history"></i>
+                <h2>Transaction History</h2>
+                <p>View your recent transactions</p>
+            </div>
+        </div>
+
+        <div id="transactionHistory">
+            <div class="transaction-list">
+                <!-- Transaction history will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for deposit/withdraw -->
+    <div id="transactionModal" class="modal">
+        <div class="modal-content">
+            <h2 id="modalTitle">Deposit</h2>
+            <form id="transactionForm">
+                <div class="form-group">
+                    <label for="amount">Amount</label>
+                    <input type="number" id="amount" required min="0" step="0.01">
+                </div>
+                <div class="button-group">
+                    <button type="submit" class="btn btn-primary">Confirm</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <div id="imp">
+            <p>IMPORTANT: State Bank of India never ask for your user id / password / pin no. through phone call / SMSes / e-mails. Any such phone call / SMSes / e-mails asking you to reveal credential or One Time Password through SMS could be attempt to withdraw money from your account.NEVER share these details to anyone. State Bank of India wants you to be secure. If you come across any such instances please inform us through e-mail to the following address- </p>
+        </div>
+    </footer>
+
+
+    <script src="dashboard.js"></script>
+</body>
+</html>
