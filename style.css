@@ -50,6 +50,14 @@ nav a{
 .welcome p{
     color: #003366;
     text-align: center;
+    animation: blinker 1.5s linear infinite;
+    color: red;
+}
+
+@keyframes blinker {
+    50% {
+        opacity: 0;
+    }
 }
 
 .welcome h4{
@@ -189,6 +197,13 @@ input:invalid + .error-message{
 .login-button:disabled {
     opacity: 0.7;
     cursor: not-allowed;
+}
+
+marquee {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .1);
+    border: 1px solid rgba(0, 0, 0, .15);
+    background-color: #9cbeed;
+    padding: 10px;
 }
 
 #imp{
