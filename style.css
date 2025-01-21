@@ -215,6 +215,55 @@ marquee {
     width: 100%;
 }
 
+footer{
+    background-color: #e0e1e2;
+    padding: 2%;
+    height: auto;
+    width: auto;
+
+}
+.contact h2{
+    color: #003366;
+    font-size: 30;
+    margin-bottom: 10;
+}
+#contactitem {
+    display: flex;
+    justify-content: space-between; 
+    align-items: flex-start;
+    text-align: left;
+    margin-bottom: 20px;
+}
+#contactitem h4{
+    color: #1a3b69;
+}
+
+#contactitem a{
+    text-decoration: none;
+    color: unset;
+    color: rgb(45, 43, 43);
+}
+footer nav{
+    display: flex; 
+    justify-content: right;
+    gap: 25px;
+    padding: 10px;
+    margin-right: 30;
+    margin-bottom: 30;
+
+}
+.contact button{
+    background-color: black;
+    border-color: #ff0000;
+    color: white;
+    height: 40px;
+    width: 150px;
+    border-radius: 10px;
+    font-size: 15;
+
+   
+}
+
 #social-media{
     display: flex; 
     justify-content: right;
