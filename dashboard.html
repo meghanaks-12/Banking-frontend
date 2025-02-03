@@ -88,6 +88,37 @@
                 <h2>Check Balance</h2>
                 <p>View your current balance</p>
             </div>
+
+            <!-- Add this to your actions-grid div in dashboard.html -->
+            <div class="action-card" onclick="openModal('transfer')">
+                <i class="fas fa-exchange-alt"></i>
+                <h2>Transfer</h2>
+                <p>Transfer money to another account</p>
+            </div>
+
+            <!-- Add this new modal for transfers -->
+            <div id="transferModal" class="modal">
+                <div class="modal-content">
+                    <h2>Transfer Money</h2>
+                    <form id="transferForm">
+                        <div class="form-group">
+                            <label for="recipientId">Recipient's User ID</label>
+                            <input type="text" id="recipientId" required placeholder="Enter recipient's User ID">
+                            <div class="error-message"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="transferAmount">Amount</label>
+                            <input type="number" id="transferAmount" required min="0" step="0.01" placeholder="Enter amount to transfer">
+                            <div class="error-message"></div>
+                        </div>
+                        <div class="button-group">
+                            <button type="submit" class="btn btn-primary">Transfer</button>
+                            <button type="button" class="btn btn-secondary" onclick="closeTransferModal()">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <div class="action-card" onclick="viewTransactionHistory()">
                 <i class="fas fa-history"></i>
                 <h2>Transaction History</h2>

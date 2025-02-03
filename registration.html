@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank User Registration</title>
+    
+    <link rel="stylesheet" href="registration.css">
+
+</head>
+<body>
+
+    <div class="container">
+        <h2>Bank Registration</h2>
+        <form id="registrationForm">
+            <input type="text" id="fullname" placeholder="Full Name" required>
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <input type="text" id="phoneNumber" placeholder="Phone Number">
+            <input type="text" id="userId" placeholder="User ID" required>
+            <input type="text" id="accountNumber" placeholder="Account Number">
+            <select id="branch">
+                <option value="">Select Branch</option>
+                <option value="Kochi">Kochi</option>
+                <option value="Chennai">Chennai</option>
+                <option value="Thiruvananthapuram">Thiruvananthapuram</option>
+                <option value="Delhi">Delhi</option>
+                <option value="Mumbai">Mumbai</option>
+                <option value="Kolkata">Kolkata</option>
+                <option value="Bengaluru">Bengaluru</option>
+                <option value="Hyderabad">Hyderabad</option>
+                <option value="Lucknow">Lucknow</option>
+                <option value="Srinagar">Srinagar</option>
+            </select>
+            <input type="number" id="balance" placeholder="Initial Balance">
+            <button type="submit">Register</button>
+            <p id="message" class="error"></p>
+        </form>
+    </div>
+
+<script src="registraton.js"></script>
+</body>
+</html>
