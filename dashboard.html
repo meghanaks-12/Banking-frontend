@@ -8,7 +8,7 @@
     <script>
         // Check if user is logged in
         function checkAuth() {
-            const isLoggedIn = sessionStorage.getItem('isLoggedIn');
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
             if (!isLoggedIn) {
                 // Redirect to login page if not logged in
                 window.location.href = 'index.html';
@@ -63,9 +63,13 @@
                         </div>
                     </div>
                 </div>
-                <button class="logout-btn" onclick="logout()">
-                    <i class="fas fa-sign-out-alt"></i>
+                <!-- <button class="logout-btn" onclick="logout()">
                     Logout
+                </button> -->
+
+                <button class="logout-btn" >
+                    <a href="index.html" style="text-decoration: none; color:white;">
+                    Logout</a>
                 </button>
             </div>
 
@@ -74,24 +78,20 @@
 
         <div class="actions-grid">
             <div class="action-card" onclick="openModal('deposit')">
-                <i class="fas fa-money-bill-wave"></i>
                 <h2>Deposit</h2>
                 <p>Add funds to your account</p>
             </div>
             <div class="action-card" onclick="openModal('withdraw')">
-                <i class="fas fa-money-bill-transfer"></i>
                 <h2>Withdraw</h2>
                 <p>Withdraw funds from your account</p>
             </div>
             <div class="action-card" onclick="checkBalance()">
-                <i class="fas fa-wallet"></i>
                 <h2>Check Balance</h2>
                 <p>View your current balance</p>
             </div>
 
             <!-- Add this to your actions-grid div in dashboard.html -->
             <div class="action-card" onclick="openModal('transfer')">
-                <i class="fas fa-exchange-alt"></i>
                 <h2>Transfer</h2>
                 <p>Transfer money to another account</p>
             </div>
@@ -120,7 +120,6 @@
             </div>
 
             <div class="action-card" onclick="viewTransactionHistory()">
-                <i class="fas fa-history"></i>
                 <h2>Transaction History</h2>
                 <p>View your recent transactions</p>
             </div>

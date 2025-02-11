@@ -1,4 +1,4 @@
-document.getElementById("registrationForm").addEventListener("submit", function(event) {
+document.getElementById("registrationForm").addEventListener("submit", async function(event) {
     event.preventDefault();
 
     // Get input values
@@ -12,17 +12,8 @@ document.getElementById("registrationForm").addEventListener("submit", function(
     const balance = document.getElementById("balance").value.trim();
 
     // Basic validation
-    if (!fullname || !email || !password || !userId) {
+    if (!fullname || !email || !password || !userId) { 
         document.getElementById("message").innerText = "Please fill all required fields.";
-        return;
-    }
-
-    // Check if user already exists
-    const existingUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-    const userExists = existingUsers.some(user => user.userId === userId || user.email === email);
-
-    if (userExists) {
-        document.getElementById("message").innerText = "User ID or Email already exists!";
         return;
     }
 
@@ -38,16 +29,36 @@ document.getElementById("registrationForm").addEventListener("submit", function(
         balance: balance ? Number(balance) : 0
     };
 
-    // Add new user to registered users
-    existingUsers.push(userData);
-    localStorage.setItem('registeredUsers', JSON.stringify(existingUsers));
+    try {
+        // Send registration request to backend
+        const response = await fetch('https://banking-system-pcji.onrender.com/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': localStorage.getItem('token')
+            },
+            body: JSON.stringify(userData)
+        });
 
-    // Show success message and redirect to login
-    document.getElementById("message").style.color = "green";
-    document.getElementById("message").innerText = "Registration Successful! Redirecting to login...";
+        const result = await response.json();
 
-    // Redirect to login page after 2 seconds
-    setTimeout(() => {
-        window.location.href = 'index.html';
-    }, 2000);
+        if (response.ok) { 
+            // Show success message and redirect to login
+            document.getElementById("message").style.color = "green";
+            document.getElementById("message").innerText = "Registration Successful! Redirecting to login...";
+
+            // Redirect to login page after 2 seconds
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 2000);
+        } else {
+            // Handle registration error
+            document.getElementById("message").style.color = "red";
+            document.getElementById("message").innerText = result.message || "Registration failed";
+        }
+    } catch (error) {
+        console.error('Registration error:', error);
+        document.getElementById("message").style.color = "red";
+        document.getElementById("message").innerText = "Network error. Please try again.";
+    }
 });

@@ -1,95 +1,258 @@
-const defaultUsers = {
-    'customer123': {
-        username: 'Meghana K S',
-        accountNumber: '1234567890',
-        password: 'password123',
-        branchName: 'Kochi Branch',
-        initialBalance: 1000000.00
-    },
-    'user456': {
-        username: 'Jyotika K J',
-        accountNumber: '0987654321',
-        password: 'password456',
-        branchName: 'Chennai Branch',
-        initialBalance: 750000.00
-    }
-};
-
-// Initialize system if not already done
-function initializeSystem() {
-    if (!localStorage.getItem('systemInitialized')) {
-        localStorage.setItem('users', JSON.stringify(defaultUsers));
-        
-        // Initialize data for each user
-        Object.keys(defaultUsers).forEach(userId => {
-            if (!localStorage.getItem(`transactions_${userId}`)) {
-                localStorage.setItem(`transactions_${userId}`, '[]');
-                localStorage.setItem(`balance_${userId}`, defaultUsers[userId].initialBalance.toString());
-            }
-        });
-        
-        localStorage.setItem('systemInitialized', 'true');
-    }
-}
+// Initialize variables
+let transactions = [];
+let currentBalance = 0;
 
 // Check if user is logged in
-function checkAuth() {
-    const isLoggedIn = sessionStorage.getItem('isLoggedIn');
-    const currentUser = sessionStorage.getItem('customerID');
+async function checkAuth() {
+    console.log("Checking Authentication...");
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    const token = localStorage.getItem('token');
+    const customerID = localStorage.getItem('customerID');
     
-    if (!isLoggedIn || !currentUser) {
+    if (!isLoggedIn || !token || !customerID) {
+        console.log('Missing auth credentials');
         window.location.href = 'index.html';
         return false;
     }
-    loadUserData();
-    return true;
-}
 
-// Load user data from localStorage
-function loadUserData() {
-    const currentUser = sessionStorage.getItem('customerID');
-    const users = JSON.parse(localStorage.getItem('users'));
-    const userData = users[currentUser];
-    
-    if (userData) {
-        // Update UI with user information
-        document.getElementById('accountName').textContent = userData.username;
-        document.getElementById('accountNumber').textContent = userData.accountNumber;
-        document.getElementById('branchName').textContent = userData.branchName;
-        
-        // Load transactions and balance
-        const storedTransactions = localStorage.getItem(`transactions_${currentUser}`);
-        const storedBalance = localStorage.getItem(`balance_${currentUser}`);
-        
-        // Initialize or load transactions
-        transactions = storedTransactions ? JSON.parse(storedTransactions) : [];
-        
-        // Initialize or load balance
-        currentBalance = storedBalance ? parseFloat(storedBalance) : userData.initialBalance;
-        
-        updateBalance();
+    try {
+        // Verify token and load user data
+        const response = await fetch('https://banking-system-pcji.onrender.com/profile', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': token
+            }
+        });
+
+        console.log('Profile response status: ',response.status);
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.log('Profile response error: ',errorData);
+            throw new Error(errorData.message || 'Authentication failed');
+        }
+
+        const userData = await response.json();
+        console.log('User data loaded: ',userData);
+
+        if(!userData.fullname || !userData.accountNumber){
+            throw new Error('Invalid user data received ');
+        }
+
+        await loadUserData(userData);
+        await fetchTransactionHistory();
+        return true;
+
+    } catch (error) {
+        console.error('Authentication error:', error);
+
+        if(error.message === 'authentication failed' || error.message === 'Invalid use data received'){
+            localStorage.clear();
+            window.location.href = 'index.html';
+        }
+        return false;
     }
 }
 
-// Save user data to localStorage
-function saveUserData() {
-    const currentUser = sessionStorage.getItem('customerID');
-    if (currentUser) {
-        localStorage.setItem(`transactions_${currentUser}`, JSON.stringify(transactions));
-        localStorage.setItem(`balance_${currentUser}`, currentBalance.toString());
+// Load user data
+async function loadUserData(userData) {
+
+    console.log("Loading user data: ",userData);
+    try{
+        // Update UI with user information
+        document.getElementById('accountName').textContent = userData.fullname;
+        document.getElementById('accountNumber').textContent = userData.accountNumber;
+        document.getElementById('branchName').textContent = userData.branch;
+    
+        // Set current balance
+        currentBalance = userData.balance;
+        updateBalance();
+
+    }catch(error){
+        console.error('Error loading user data: ',error);
+        throw error;
+    }
+
+    // Fetch transaction history
+    // fetchTransactionHistory();
+}
+
+// Fetch transaction history
+async function fetchTransactionHistory() {
+    const token = localStorage.getItem('token');
+
+    try {
+        const response = await fetch('https://banking-system-pcji.onrender.com/transactions', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': token
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch transactions');
+        }
+
+        transactions = await response.json();
+        viewTransactionHistory();
+
+    } catch (error) {
+        console.error('Transaction history error:', error);
+        const transactionList = document.querySelector('.transaction-list');
+        if (transactionList) {
+            transactionList.innerHTML = '<p class="transaction-item">Failed to load transactions. Please try again later.</p>';
+        }
+    }
+}
+
+// Handle deposit
+async function handleDeposit(e) {
+    e.preventDefault();
+    const type = document.getElementById('transactionModal').dataset.type;
+    const amount = parseFloat(document.getElementById('amount').value);
+    const token = localStorage.getItem('token');
+    const currentUser = localStorage.getItem('customerID');
+
+    if (isNaN(amount) || amount <= 0) {
+        alert('Please enter a valid amount!');
+        return;
+    }
+
+    try { 
+        const response = await fetch('https://banking-system-pcji.onrender.com/deposit', { //deposit
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': localStorage.getItem('token')
+            },
+            body: JSON.stringify({
+                amount: amount
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Deposit failed');
+        }
+
+        const result = await response.json();
+
+        const transaction = {
+            type: type === 'withdraw' ? 'Withdrawal' : 'Deposit',
+            amount: amount,
+            date: new Date().toLocaleDateString('en-IN'),
+            timestamp: new Date().getTime(),
+            userId: currentUser
+        };
+        
+         currentBalance = result.balance; // Use balance from server response
+         updateBalance();
+         
+         // Save updated user data
+         saveUserData();
+         
+         closeModal();
+         alert('Deposit successful! ');
+
+         // Update transaction list if visible
+        const transactionList = document.querySelector('.transaction-list');
+        if (transactionList && transactionList.style.display === 'block') {
+            viewTransactionHistory();
+        }
+
+        // Refresh transaction history
+        await fetchTransactionHistory();
+
+    } catch (error) {
+        console.error('Deposit error:', error);
+        alert(error.message || 'Deposit failed. Please try again.');
+
+        // Revert any local changes on error
+        await fetchTransactionHistory(); // Refresh from server to ensure accuracy
+    }
+}
+
+
+//handle withdraw
+async function handleWithdraw(e) {
+    e.preventDefault();
+    const type = document.getElementById('transactionModal').dataset.type;
+    const amount = parseFloat(document.getElementById('amount').value);
+    const token = localStorage.getItem('token');
+    const currentUser = localStorage.getItem('customerID');
+
+    if (isNaN(amount) || amount <= 0) {
+        alert('Please enter a valid amount!');
+        return;
+    }
+
+    if (amount > currentBalance) {
+        alert('Insufficient funds!');
+        return;
+    }
+
+    try {  
+        const response = await fetch('https://banking-system-pcji.onrender.com/withdraw', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': localStorage.getItem('token')
+            },
+            body: JSON.stringify({
+                amount: amount
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Withdrawal failed');
+        }
+
+        const result = await response.json();
+
+        const transaction = {
+            type: type === 'withdraw' ? 'Withdrawal' : 'Deposit',
+            amount: amount,
+            date: new Date().toLocaleDateString('en-IN'),
+            timestamp: new Date().getTime(),
+            userId: currentUser
+        };
+
+         currentBalance = result.balance; // Use balance from server response
+         updateBalance();
+         
+         // Save updated user data
+         saveUserData();
+
+        //  openModal();
+         closeModal();
+         alert('Withdrawal successful! ');
+
+         // Update transaction list if visible
+        const transactionList = document.querySelector('.transaction-list');
+        if (transactionList && transactionList.style.display === 'block') {
+            viewTransactionHistory();
+        }
+
+        // Refresh transaction history
+        await fetchTransactionHistory();
+
+    } catch (error) {
+        console.error('Transaction error:', error);
+        alert(error.message || 'Withdrawal failed. Please try again.');
+
+        // Revert any local changes on error
+        await fetchTransactionHistory(); // Refresh from server to ensure accuracy
     }
 }
 
 // Logout function
-function logout() {
-    saveUserData();
-    sessionStorage.clear();
-    window.location.href = 'index.html';
-}
-
-// Initialize variables
-let transactions = [];
-let currentBalance = 0;
+// function logout() {
+//     localStorage.clear();
+//     window.location.href = 'index.html';
+// }
 
 // Function to format amount in Indian currency format
 function formatIndianCurrency(amount) {
@@ -110,54 +273,18 @@ function openModal(type) {
     modalTitle.textContent = type.charAt(0).toUpperCase() + type.slice(1);
     modal.dataset.type = type;
     modal.style.display = 'block';
-    
-    form.onsubmit = handleTransaction;
+
+    if(type === 'deposit'){
+        form.onsubmit = handleDeposit;
+    }else if (type === 'withdraw'){
+        form.onsubmit = handleWithdraw;
+    }
+
 }
 
 function closeModal() {
     document.getElementById('transactionModal').style.display = 'none';
     document.getElementById('amount').value = '';
-}
-
-function handleTransaction(e) {
-    e.preventDefault();
-    const type = document.getElementById('transactionModal').dataset.type;
-    const amount = parseFloat(document.getElementById('amount').value);
-    const currentUser = sessionStorage.getItem('customerID');
-
-    if (isNaN(amount) || amount <= 0) {
-        alert('Please enter a valid amount!');
-        return;
-    }
-
-    if (type === 'withdraw' && amount > currentBalance) {
-        alert('Insufficient funds!');
-        return;
-    }
-
-    const transaction = {
-        type: type === 'withdraw' ? 'Withdrawal' : 'Deposit',
-        amount: amount,
-        date: new Date().toLocaleDateString('en-IN'),
-        timestamp: new Date().getTime(),
-        userId: currentUser
-    };
-
-    if (type === 'withdraw') {
-        currentBalance -= amount;
-    } else {
-        currentBalance += amount;
-    }
-
-    transactions.unshift(transaction);
-    saveUserData();
-    updateBalance();
-    closeModal();
-
-    const transactionList = document.querySelector('.transaction-list');
-    if (transactionList.style.display === 'block') {
-        viewTransactionHistory();
-    }
 }
 
 function checkBalance() {
@@ -166,6 +293,16 @@ function checkBalance() {
 
 function updateBalance() {
     document.getElementById('currentBalance').textContent = formatIndianCurrency(currentBalance);
+}
+
+function saveUserData() {
+    try {
+        // Save current balance and transactions to localStorage
+        localStorage.setItem('currentBalance', currentBalance);
+        localStorage.setItem('transactions', JSON.stringify(transactions));
+    } catch (error) {
+        console.error('Error saving user data:', error);
+    }
 }
 
 function viewTransactionHistory() {
@@ -202,8 +339,22 @@ window.onclick = function(event) {
     }
 }
 
-// Initialize system and load data when page loads
-document.addEventListener('DOMContentLoaded', () => {
-    initializeSystem();
-    checkAuth();
+// Initialize system when page loads
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('Dashboard initializing...');
+    console.log('Local storage contents:', {
+        isLoggedIn: localStorage.getItem('isLoggedIn'),
+        token: localStorage.getItem('token'),
+        customerID: localStorage.getItem('customerID')
+    });
+    
+    try {
+        const authSuccess = await checkAuth();
+        if (!authSuccess) {
+            console.error('Authentication failed during initialization');
+        }
+    } catch (error) {
+        console.error('Initialization error:', error);
+    }
 });
+
